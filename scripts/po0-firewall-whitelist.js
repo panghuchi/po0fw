@@ -81,6 +81,8 @@ function getArgumentTokens() {
   // Loon 插件 argument=[{tokens}] 会注入对象形态
   if (typeof $argument === "object") return String($argument.tokens || "");
   if (typeof $argument === "string" && $argument.length > 0) {
+    // Shadowrocket 等客户端可能把配置里的外层引号原样传入，先剥掉
+    if (/^["'].*["']$/.test($argument)) $argument = $argument.slice(1, -1);
     // Loon 也可能注入 JSON 字符串
     if ($argument.charAt(0) === "{") {
       try {
@@ -231,13 +233,14 @@ function describe(index, ctx) {
   );
 }
 
+// 分隔符兼容 , | ; 、；非 pgnfw_ 开头的段（如未修改的占位提示）直接忽略
 var tokens = (getArgumentTokens() || storeRead(TOKENS_KEY) || INLINE_TOKENS || "")
-  .split(",")
+  .split(/[,|;、\s]+/)
   .map(function (s) {
     return s.trim();
   })
   .filter(function (s) {
-    return s.length > 0;
+    return s.indexOf("pgnfw_") === 0;
   });
 
 if (tokens.length === 0) {
