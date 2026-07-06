@@ -115,6 +115,24 @@ td:last-child,th:last-child{white-space:normal}
 }
 .client .note{font-size:12.5px;color:var(--vp-muted);line-height:1.55}
 
+/* po0 面板示意图 */
+.mock{display:flex;justify-content:center;margin:18px 0}
+.mock-card{width:100%;max-width:320px;background:var(--vp-bg);border:1px solid var(--vp-divider);border-radius:16px;padding:18px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.mock-title{font-size:16px;font-weight:700;color:var(--vp-fg-strong)}
+.mock-sub{font-size:12px;color:var(--vp-muted);margin:4px 0 12px;line-height:1.5}
+.mock-badge{display:inline-block;font-size:12px;color:var(--vp-ok);background:rgba(52,199,89,.14);border-radius:8px;padding:6px 14px;margin-bottom:12px}
+.mock-field,.mock-wl{background:var(--vp-bg-soft);border-radius:10px;padding:11px 13px;margin-bottom:11px}
+.mock-label{font-size:11px;color:var(--vp-muted);letter-spacing:.14em}
+.mock-ip{margin-top:6px;font-size:14px;color:var(--vp-brand);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.mock-wl-head{display:flex;justify-content:space-between;font-size:12px;color:var(--vp-muted);margin-bottom:9px}
+.mock-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip{height:22px;border-radius:12px;border:1px solid var(--vp-divider);background:var(--vp-bg)}
+.chip:last-child{grid-column:1 / 2}
+.mock-copy{position:relative;text-align:center;font-size:13.5px;font-weight:600;color:var(--vp-fg-strong);border:1px solid var(--vp-divider);border-radius:9px;padding:12px;margin:4px 0 10px;outline:2.5px solid #e5484d;outline-offset:4px}
+.mock-copy .ptr{position:absolute;right:-6px;top:50%;transform:translateY(-50%);font-size:18px}
+.mock-add{text-align:center;font-size:13.5px;font-weight:600;color:#fff;background:#3b9bf0;border-radius:9px;padding:12px}
+.tok{color:var(--vp-warn);font-weight:600}
+
 footer{
   border-top:1px solid var(--vp-divider);margin-top:48px;padding:28px 0 48px;
   text-align:center;color:var(--vp-muted);font-size:13.5px;
@@ -145,7 +163,30 @@ footer{
   <h2>快速开始</h2>
 
   <h3>1. 获取 token</h3>
-  <p>在 po0 控制台的机器详情页开启「防火墙加白」功能，复制生成的 API token（<code>pgnfw_</code> 开头）。一台机器对应一个 token，多个 token 用<strong>英文逗号</strong>分割。</p>
+  <p>在 po0 控制台的机器详情页，找到「防火墙」卡片，点 <strong>复制添加脚本</strong>（<em>不是</em>「添加当前 IP」）：</p>
+  <div class="mock">
+    <div class="mock-card">
+      <div class="mock-title">防火墙</div>
+      <div class="mock-sub">仅允许白名单中的最近来源 IP 访问入站端口。</div>
+      <div class="mock-badge">● 已开启</div>
+      <div class="mock-field">
+        <div class="mock-label">当前来源 IP</div>
+        <div class="mock-ip">203.0.113.•••</div>
+      </div>
+      <div class="mock-wl">
+        <div class="mock-wl-head"><span>白名单</span><span>5 / 5</span></div>
+        <div class="mock-chips"><span class="chip"></span><span class="chip"></span><span class="chip"></span><span class="chip"></span><span class="chip"></span></div>
+      </div>
+      <div class="mock-copy">📋 复制添加脚本<span class="ptr">👈</span></div>
+      <div class="mock-add">🛡 添加当前 IP</div>
+    </div>
+  </div>
+  <p>粘贴到任意文本框，会得到一段 curl 命令。你的 token 就是 <code>Authorization: Bearer</code> 后面 <code>pgnfw_</code> 开头的那一整串：</p>
+  <pre><code>curl -X POST https://console.po0.com/modules/servers/penguin/api/firewall.php \
+  -H 'Authorization: Bearer <span class="tok">pgnfw_你复制到的这一整串</span>' \
+  -H 'Content-Type: application/json'</code></pre>
+  <p>把 <code class="tok">pgnfw_…</code> 那一整串提取出来就是本机 token。一台机器对应一个 token，多个 token 用<strong>英文逗号</strong>分割。</p>
+  <div class="tip warn"><strong>🔑 token = 该机器的加白凭证</strong>，请妥善保管、不要公开分享。它只需填进你自己的客户端配置。</div>
 
   <h3>2. 选择你的客户端安装</h3>
   <div class="clients">
