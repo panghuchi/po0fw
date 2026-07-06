@@ -212,7 +212,7 @@ footer{
         <a class="btn brand" href="loon://import?plugin=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Floon%2Fpo0-firewall-whitelist.plugin">一键安装</a>
         <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/loon/po0-firewall-whitelist.plugin">复制链接</button>
       </div>
-      <p class="note">安装后进插件设置，在 <code>API tokens</code> 输入框填入 token。</p>
+      <p class="note">安装后进插件设置，在 <code>API tokens</code> 输入框填入 token。Loon 无面板，可在「脚本」列表手动执行 cron 脚本立即加白。</p>
     </div>
 
     <div class="client">
@@ -303,7 +303,7 @@ footer{
   <p><strong>Q: 家宽换 IP 后多久生效？</strong><br>
   网络切换事件是即时的；纯粹的公网 IP 变更最迟 3 分钟内被 cron 捕捉。</p>
   <p><strong>Q: 不同客户端功能有差异吗？</strong><br>
-  核心加白逻辑完全一致。差异：不支持 <code>$network</code> 的客户端无法识别蜂窝（按非蜂窝处理）；QX 无面板与脚本参数（token 走存储 key）。</p>
+  核心加白逻辑完全一致。差异：不支持 <code>$network</code> 的客户端无法识别蜂窝（按非蜂窝处理）；Loon 无面板（可在脚本列表手动执行）；QX 无面板与脚本参数（token 走存储 key）。</p>
   <p><strong>Q: 支持几台 po0 机器？</strong><br>
   不限，tokens 逗号分割即可，面板按 #1 #2 … 分行显示。</p>
 </section>

@@ -77,7 +77,17 @@ function httpRequest(method, opts) {
 }
 
 function getArgumentTokens() {
+  if (typeof $argument === "undefined" || $argument === null) return "";
+  // Loon 插件 argument=[{tokens}] 会注入对象形态
+  if (typeof $argument === "object") return String($argument.tokens || "");
   if (typeof $argument === "string" && $argument.length > 0) {
+    // Loon 也可能注入 JSON 字符串
+    if ($argument.charAt(0) === "{") {
+      try {
+        return String(JSON.parse($argument).tokens || "");
+      } catch (e) {}
+    }
+    // Surge/Stash 风格 tokens=xxx&...
     var pairs = $argument.split("&");
     for (var i = 0; i < pairs.length; i++) {
       var idx = pairs[i].indexOf("=");
@@ -85,6 +95,8 @@ function getArgumentTokens() {
         return decodeURIComponent(pairs[i].slice(idx + 1));
       }
     }
+    // 直接把整串当 token 填的兜底（如 Loon argument="pgnfw_..."）
+    if ($argument.indexOf("pgnfw_") === 0) return $argument;
   }
   return "";
 }
