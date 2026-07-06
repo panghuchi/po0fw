@@ -9,11 +9,9 @@
  *
  * 策略：
  * - GET 先查，currentIp 已在白名单则跳过 POST（不推进淘汰队列）。
- * - WiFi/有线：IP 变了就自动 POST（家宽换 IP 场景，正常使用不受影响）。
- * - 蜂窝（主接口 pdp_ip*，CGNAT IP 频繁变化）：自动写入有 CELL_COOLDOWN
- *   冷却，防止极端 churn 刷爆 FIFO 队列把别的设备挤出去；冷却中面板
- *   手动刷新不受限、立即加白。被挤掉的设备会被它自己的 cron/事件在
- *   几分钟内自动补回（自愈）。检测不到网络接口的客户端按非蜂窝处理。
+ * - 出口 IP 变了就自动 POST，蜂窝与 WiFi/有线同等处理；被 FIFO 淘汰
+ *   挤出白名单的设备，会被它自己的 cron/事件在几分钟内自动补回（自愈）。
+ * - 蜂窝（主接口 pdp_ip*）写入的 IP 仅做 📶 标记，便于面板识别。
  *
  * token 来源（优先级从高到低）：
  * 1. argument: tokens=<pgnfw_xxx>,<pgnfw_yyy>（Surge/Loon/Stash/Egern 模块参数）
@@ -27,7 +25,6 @@ var INLINE_TOKENS = "";
 var API = "https://console.po0.com/modules/servers/penguin/api/firewall.php";
 var STORE_PREFIX = "po0_fw_";
 var TOKENS_KEY = "po0fw_tokens";
-var CELL_COOLDOWN_MS = 10 * 60 * 1000; // 蜂窝自动写入冷却，手动不受限
 var HIST_WINDOW_MS = 24 * 3600 * 1000; // 📶 标记的记账窗口
 
 /* ---------- 环境兼容层 ---------- */
@@ -115,14 +112,6 @@ function onCellular() {
   }
 }
 
-function isPanelRun() {
-  try {
-    return $script.type === "generic"; // Surge/Stash 面板手动刷新
-  } catch (e) {
-    return false; // 无 $script 的客户端按自动触发处理（保守省坑位）
-  }
-}
-
 function finish(title, content, allOk) {
   if (isQX) {
     $done();
@@ -177,7 +166,6 @@ function ensureWhitelisted(token, index) {
   var kvState = STORE_PREFIX + index;
   var kvHist = STORE_PREFIX + "hist_" + index;
   var cellular = onCellular();
-  var panel = isPanelRun();
 
   return apiCall("GET", token).then(function (st) {
     var ctx = { st: st, kvState: kvState, kvHist: kvHist };
@@ -185,17 +173,6 @@ function ensureWhitelisted(token, index) {
 
     // 需要 POST 写入白名单（会推进 FIFO 淘汰队列）
     var hist = readHistory(kvHist);
-    if (cellular && !panel) {
-      var lastCell = 0;
-      hist.forEach(function (e) {
-        if (e.src === "cell" && e.ts > lastCell) lastCell = e.ts;
-      });
-      if (Date.now() - lastCell < CELL_COOLDOWN_MS) {
-        st.limited = true; // 蜂窝自动写入冷却中，面板手动刷新可立即加白
-        return ctx;
-      }
-    }
-
     return apiCall("POST", token).then(function (st2) {
       st2.posted = true;
       if (st2.applied) {
@@ -214,8 +191,6 @@ function describe(index, ctx) {
   var head = "#" + (index + 1) + " ";
   if (st.error) return head + "❌ " + st.error;
   if (st.enabled === false) return head + "⚠️ 防火墙未启用";
-  if (st.limited)
-    return head + "⏸ 蜂窝写入冷却中(" + Math.round(CELL_COOLDOWN_MS / 60000) + "min)，点面板可立即加白";
   if (!st.applied) return head + "❌ 加白未生效 " + st.whitelist.length + "/" + st.limit;
 
   var hist = readHistory(ctx.kvHist);
@@ -261,18 +236,15 @@ if (tokens.length === 0) {
     var lines = [];
     var changed = false;
     var anyPosted = false;
-    var anyLimited = false;
 
     for (var i = 0; i < results.length; i++) {
       var st = results[i].st;
       if (st.applied) okCount++;
       if (st.posted) anyPosted = true;
-      if (st.limited) anyLimited = true;
       if (st.currentIp) exitIp = st.currentIp;
       lines.push(describe(i, results[i]));
 
-      var state =
-        (st.currentIp || "?") + "|" + (st.applied ? "1" : st.limited ? "L" : "0");
+      var state = (st.currentIp || "?") + "|" + (st.applied ? "1" : "0");
       if (storeRead(results[i].kvState) !== state) {
         storeWrite(state, results[i].kvState);
         changed = true;
@@ -284,10 +256,10 @@ if (tokens.length === 0) {
       "po0 加白 " + okCount + "/" + results.length + " · 出口 " + exitIp + (onCellular() ? " 📶" : "");
     var content = lines.join("\n");
 
-    // 失败/限频/消耗新坑位且状态有变化时才通知，例行检查保持安静
-    if (changed && (!allOk || anyPosted || anyLimited)) {
+    // 失败或消耗新坑位且状态有变化时才通知，例行检查保持安静
+    if (changed && (!allOk || anyPosted)) {
       notify("po0 防火墙加白", title, content);
     }
-    finish(title, content, allOk && !anyLimited);
+    finish(title, content, allOk);
   });
 }

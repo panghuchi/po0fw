@@ -156,7 +156,7 @@ footer{
   <div class="feature"><div class="icon">📱</div><h3>六大客户端</h3><p>Surge、Loon、Stash、Shadowrocket、Egern、Quantumult X，同一份脚本内置环境兼容层。</p></div>
   <div class="feature"><div class="icon">⚡</div><h3>即时 + 兜底</h3><p>切换网络瞬间通过 network-changed 事件触发，每 3 分钟 cron 兜底捕捉纯 IP 变更。</p></div>
   <div class="feature"><div class="icon">🎯</div><h3>省坑位</h3><p>先只读查询，出口已在白名单就不写入。写满按写入时间自动淘汰，乱写会挤掉常用 IP。</p></div>
-  <div class="feature"><div class="icon">📶</div><h3>蜂窝优化</h3><p>蜂窝自动写入带 10 分钟冷却，防止 IP 频繁变化挤掉其他设备；手动刷新永不受限。</p></div>
+  <div class="feature"><div class="icon">🔄</div><h3>自动自愈</h3><p>被 FIFO 淘汰挤出白名单的设备，由自己的 cron / 切网事件在几分钟内自动补回。</p></div>
 </div>
 
 <section id="install">
@@ -286,13 +286,12 @@ footer{
   <h2>设计说明</h2>
   <ul>
     <li><strong>省坑位</strong>：每次先只读查询（GET），当前出口已在白名单就不写入（POST）。白名单上限 5 个，写满按写入时间先进先出淘汰；不必要的写入会把常用 IP 挤出去，所以先查后写很重要。</li>
-    <li><strong>蜂窝优化</strong>：蜂窝出口是 CGNAT，IP 变化频繁，每次写入都会推进淘汰队列。自动写入设有 <strong>10 分钟冷却</strong>，避免极端场景（如地铁上频繁切换基站）连续写入把家宽等常用 IP 挤出白名单；<strong>手动刷新（面板/磁贴）不受冷却限制</strong>，需要连机器时点一下立即加白。</li>
     <li><strong>自愈</strong>：每台设备都在自动检查，就算某台设备的 IP 被淘汰挤出白名单，它自己的 cron/切网事件最迟 3 分钟内会自动补回。</li>
     <li><strong>安静运行</strong>：状态用持久化存储记账，只在失败、限频或消耗新坑位时才推送通知。</li>
     <li><strong>隐私</strong>：面板不显示 token；token 只保存在你自己的客户端配置里，仓库与页面不包含、不上传任何 token。</li>
   </ul>
   <div class="tip warn">
-    <strong>⚠️ 注意</strong>：坑位满（5/5）后继续加白会按<strong>写入时间先进先出</strong>自动淘汰最旧的 IP，无需手动清理；但频繁写入会把还在用的 IP（比如家宽）挤出白名单 —— 蜂窝冷却就是为了缓解这个，且被挤掉的设备会在几分钟内自愈补回。
+    <strong>⚠️ 注意</strong>：坑位满（5/5）后继续加白会按<strong>写入时间先进先出</strong>自动淘汰最旧的 IP，无需手动清理；但频繁写入会把还在用的 IP（比如家宽）挤出白名单 —— 被挤掉的设备会在几分钟内自愈补回。
   </div>
 </section>
 
@@ -303,7 +302,7 @@ footer{
   <p><strong>Q: 家宽换 IP 后多久生效？</strong><br>
   网络切换事件是即时的；纯粹的公网 IP 变更最迟 3 分钟内被 cron 捕捉。</p>
   <p><strong>Q: 不同客户端功能有差异吗？</strong><br>
-  核心加白逻辑完全一致。差异：不支持 <code>$network</code> 的客户端无法识别蜂窝（按非蜂窝处理）；Loon 无面板（可在脚本列表手动执行）；QX 无面板与脚本参数（token 走存储 key）。</p>
+  核心加白逻辑完全一致。差异：不支持 <code>$network</code> 的客户端没有 📶 蜂窝标记；Loon 无面板（可在脚本列表手动执行）；QX 无面板与脚本参数（token 走存储 key）。</p>
   <p><strong>Q: 支持几台 po0 机器？</strong><br>
   不限，tokens 逗号分割即可，面板按 #1 #2 … 分行显示。</p>
 </section>
