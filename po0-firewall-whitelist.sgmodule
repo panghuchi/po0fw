@@ -1,6 +1,6 @@
 #!name=po0 防火墙自动加白
 #!desc=调用 po0 防火墙 API 将本机当前出口 IP 加入白名单。支持多 token（英文逗号分割，对应多台机器），network-changed 事件与每 5 分钟 cron 自动触发，附带手动刷新面板。
-#!category=netops
+#!category=po0
 #!author=reallinzc
 #!arguments=tokens:""
 #!arguments-desc=tokens: po0 防火墙 API token（pgnfw_ 开头），多台机器用英文逗号 , 分割
@@ -10,7 +10,7 @@
 DOMAIN,console.po0.com,DIRECT,extended-matching
 
 [Script]
-po0-fw-cron = type=cron,cronexp="*/2 * * * *",script-path=https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js,timeout=60,argument="tokens={{{tokens}}}"
+po0-fw-cron = type=cron,cronexp="*/3 * * * *",script-path=https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js,timeout=60,argument="tokens={{{tokens}}}"
 po0-fw-event = type=event,event-name=network-changed,script-path=https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js,timeout=60,argument="tokens={{{tokens}}}"
 po0-fw-panel = type=generic,script-path=https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js,timeout=60,argument="tokens={{{tokens}}}"
 
