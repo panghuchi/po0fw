@@ -8,11 +8,12 @@
  * 写入时间先进先出自动淘汰最旧 IP —— 不必要的写入会挤掉常用 IP。
  *
  * 策略：
- * - GET 先查，currentIp 已在白名单则跳过 POST（零坑位消耗）。
+ * - GET 先查，currentIp 已在白名单则跳过 POST（不推进淘汰队列）。
  * - WiFi/有线：IP 变了就自动 POST（家宽换 IP 场景，正常使用不受影响）。
- * - 蜂窝（主接口 pdp_ip*，CGNAT IP 频繁变化）：自动触发（cron/事件）在
- *   24h 内最多消耗 CELL_CAP 个新坑位，超限后只通知不 POST；
- *   面板手动刷新不受限。检测不到网络接口的客户端按非蜂窝处理。
+ * - 蜂窝（主接口 pdp_ip*，CGNAT IP 频繁变化）：自动写入有 CELL_COOLDOWN
+ *   冷却，防止极端 churn 刷爆 FIFO 队列把别的设备挤出去；冷却中面板
+ *   手动刷新不受限、立即加白。被挤掉的设备会被它自己的 cron/事件在
+ *   几分钟内自动补回（自愈）。检测不到网络接口的客户端按非蜂窝处理。
  *
  * token 来源（优先级从高到低）：
  * 1. argument: tokens=<pgnfw_xxx>,<pgnfw_yyy>（Surge/Loon/Stash/Egern 模块参数）
@@ -26,8 +27,8 @@ var INLINE_TOKENS = "";
 var API = "https://console.po0.com/modules/servers/penguin/api/firewall.php";
 var STORE_PREFIX = "po0_fw_";
 var TOKENS_KEY = "po0fw_tokens";
-var CELL_CAP = 2; // 24h 内蜂窝自动加白最多消耗的坑位数
-var CELL_WINDOW_MS = 24 * 3600 * 1000;
+var CELL_COOLDOWN_MS = 10 * 60 * 1000; // 蜂窝自动写入冷却，手动不受限
+var HIST_WINDOW_MS = 24 * 3600 * 1000; // 📶 标记的记账窗口
 
 /* ---------- 环境兼容层 ---------- */
 
@@ -126,7 +127,7 @@ function finish(title, content, allOk) {
 function readHistory(key) {
   try {
     var h = JSON.parse(storeRead(key) || "[]");
-    var cutoff = Date.now() - CELL_WINDOW_MS;
+    var cutoff = Date.now() - HIST_WINDOW_MS;
     return h.filter(function (e) {
       return e.ts > cutoff;
     });
@@ -168,14 +169,15 @@ function ensureWhitelisted(token, index) {
     var ctx = { st: st, kvState: kvState, kvHist: kvHist };
     if (st.error || st.enabled === false || st.applied) return ctx;
 
-    // 需要 POST 占新坑位
+    // 需要 POST 写入白名单（会推进 FIFO 淘汰队列）
     var hist = readHistory(kvHist);
     if (cellular && !panel) {
-      var cellUsed = hist.filter(function (e) {
-        return e.src === "cell";
-      }).length;
-      if (cellUsed >= CELL_CAP) {
-        st.limited = true; // 蜂窝自动加白限频，面板手动刷新可强制
+      var lastCell = 0;
+      hist.forEach(function (e) {
+        if (e.src === "cell" && e.ts > lastCell) lastCell = e.ts;
+      });
+      if (Date.now() - lastCell < CELL_COOLDOWN_MS) {
+        st.limited = true; // 蜂窝自动写入冷却中，面板手动刷新可立即加白
         return ctx;
       }
     }
@@ -199,7 +201,7 @@ function describe(index, ctx) {
   if (st.error) return head + "❌ " + st.error;
   if (st.enabled === false) return head + "⚠️ 防火墙未启用";
   if (st.limited)
-    return head + "⏸ 蜂窝自动加白已限频(24h内" + CELL_CAP + "个)，点面板可手动加白";
+    return head + "⏸ 蜂窝写入冷却中(" + Math.round(CELL_COOLDOWN_MS / 60000) + "min)，点面板可立即加白";
   if (!st.applied) return head + "❌ 加白未生效 " + st.whitelist.length + "/" + st.limit;
 
   var hist = readHistory(ctx.kvHist);
