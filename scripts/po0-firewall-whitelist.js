@@ -2,15 +2,15 @@
  * po0 防火墙自动加白
  * 兼容：Surge / Stash / Shadowrocket / Egern / Loon / Quantumult X
  *
- * GET  /firewall.php  只读状态：{enabled, whitelist[], limit, currentIp}
- * POST /firewall.php  把"当前请求源 IP"加入白名单（占一个坑位）
- * API 无删除接口（DELETE/PUT 405，POST 不接受指定 IP）；白名单写满后按
- * 写入时间先进先出自动淘汰最旧 IP —— 不必要的写入会挤掉常用 IP。
+ * POST /firewall.php  把"当前请求源 IP"加入白名单，并回显
+ *   {enabled, whitelist[], limit, currentIp}。服务端对已在白名单的 IP
+ *   做幂等处理（重复 POST 不重复占坑、不推进淘汰队列），因此这里直接
+ *   无脑 POST，不再 GET 先查。
+ * 白名单写满后按写入时间先进先出自动淘汰最旧 IP；API 无删除接口。
  *
  * 策略：
- * - GET 先查，currentIp 已在白名单则跳过 POST（不推进淘汰队列）。
- * - 出口 IP 变了就自动 POST，蜂窝与 WiFi/有线同等处理；被 FIFO 淘汰
- *   挤出白名单的设备，会被它自己的 cron/事件在几分钟内自动补回（自愈）。
+ * - 每次直接 POST 上报当前出口 IP，蜂窝与 WiFi/有线同等处理。
+ * - 被 FIFO 淘汰挤出白名单的设备，由它自己的 cron/事件几分钟内自动补回。
  * - 蜂窝（主接口 pdp_ip*）写入的 IP 仅做 📶 标记，便于面板识别。
  *
  * token 来源（优先级从高到低）：
@@ -166,22 +166,20 @@ function ensureWhitelisted(token, index) {
   var kvState = STORE_PREFIX + index;
   var kvHist = STORE_PREFIX + "hist_" + index;
   var cellular = onCellular();
+  var ctx = { kvState: kvState, kvHist: kvHist };
 
-  return apiCall("GET", token).then(function (st) {
-    var ctx = { st: st, kvState: kvState, kvHist: kvHist };
-    if (st.error || st.enabled === false || st.applied) return ctx;
-
-    // 需要 POST 写入白名单（会推进 FIFO 淘汰队列）
-    var hist = readHistory(kvHist);
-    return apiCall("POST", token).then(function (st2) {
-      st2.posted = true;
-      if (st2.applied) {
-        hist.push({ ip: st2.currentIp, src: cellular ? "cell" : "fixed", ts: Date.now() });
+  // 服务端对重复 IP 幂等，直接 POST 即可，无需 GET 先查
+  return apiCall("POST", token).then(function (st) {
+    if (st.applied) {
+      var hist = readHistory(kvHist);
+      var last = hist.length ? hist[hist.length - 1] : null;
+      if (!last || last.ip !== st.currentIp) {
+        hist.push({ ip: st.currentIp, src: cellular ? "cell" : "fixed", ts: Date.now() });
         storeWrite(JSON.stringify(hist.slice(-10)), kvHist);
       }
-      ctx.st = st2;
-      return ctx;
-    });
+    }
+    ctx.st = st;
+    return ctx;
   });
 }
 
@@ -203,9 +201,7 @@ function describe(index, ctx) {
       return ip + (cellIps[ip] ? " 📶" : "") + (ip === st.currentIp ? " ←" : "");
     })
     .join("\n    ");
-  return (
-    head + "✅ " + st.whitelist.length + "/" + st.limit + (st.posted ? " (新加白)" : "") + "\n    " + ips
-  );
+  return head + "✅ " + st.whitelist.length + "/" + st.limit + "\n    " + ips;
 }
 
 // 分隔符兼容 , | ; 、；非 pgnfw_ 开头的段（如未修改的占位提示）直接忽略
@@ -235,12 +231,10 @@ if (tokens.length === 0) {
     var exitIp = "?";
     var lines = [];
     var changed = false;
-    var anyPosted = false;
 
     for (var i = 0; i < results.length; i++) {
       var st = results[i].st;
       if (st.applied) okCount++;
-      if (st.posted) anyPosted = true;
       if (st.currentIp) exitIp = st.currentIp;
       lines.push(describe(i, results[i]));
 
@@ -256,8 +250,8 @@ if (tokens.length === 0) {
       "po0 加白 " + okCount + "/" + results.length + " · 出口 " + exitIp + (onCellular() ? " 📶" : "");
     var content = lines.join("\n");
 
-    // 失败或消耗新坑位且状态有变化时才通知，例行检查保持安静
-    if (changed && (!allOk || anyPosted)) {
+    // 仅在出口 IP 或加白状态较上次变化时通知，例行 POST 保持安静
+    if (changed) {
       notify("po0 防火墙加白", title, content);
     }
     finish(title, content, allOk);

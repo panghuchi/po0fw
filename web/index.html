@@ -156,7 +156,7 @@ footer{
 <div class="features">
   <div class="feature"><div class="icon">📱</div><h3>六大客户端</h3><p>Surge、Loon、Stash、Shadowrocket、Egern、Quantumult X，同一份脚本内置环境兼容层。</p></div>
   <div class="feature"><div class="icon">⚡</div><h3>即时 + 兜底</h3><p>切换网络瞬间通过 network-changed 事件触发，每 10 分钟 cron 兜底捕捉纯 IP 变更。</p></div>
-  <div class="feature"><div class="icon">🎯</div><h3>省坑位</h3><p>先只读查询，出口已在白名单就不写入。写满按写入时间自动淘汰，乱写会挤掉常用 IP。</p></div>
+  <div class="feature"><div class="icon">🎯</div><h3>无脑 POST</h3><p>每次直接上报出口 IP，服务端对重复 IP 幂等去重。写满按写入时间自动淘汰最旧 IP。</p></div>
   <div class="feature"><div class="icon">🔄</div><h3>自动自愈</h3><p>被 FIFO 淘汰挤出白名单的设备，由自己的 cron / 切网事件在几分钟内自动补回。</p></div>
 </div>
 
@@ -286,7 +286,7 @@ footer{
 <section>
   <h2>设计说明</h2>
   <ul>
-    <li><strong>省坑位</strong>：每次先只读查询（GET），当前出口已在白名单就不写入（POST）。白名单上限 5 个，写满按写入时间先进先出淘汰；不必要的写入会把常用 IP 挤出去，所以先查后写很重要。</li>
+    <li><strong>无脑 POST</strong>：每次直接 POST 上报当前出口 IP，服务端对已在白名单的 IP 做幂等处理（不重复占坑、不推进淘汰队列），无需客户端先 GET 查询。白名单上限 5 个，写满按写入时间先进先出淘汰。</li>
     <li><strong>自愈</strong>：每台设备都在自动检查，就算某台设备的 IP 被淘汰挤出白名单，它自己的 cron/切网事件最迟 10 分钟内会自动补回。</li>
     <li><strong>安静运行</strong>：状态用持久化存储记账，只在失败、限频或消耗新坑位时才推送通知。</li>
     <li><strong>隐私</strong>：面板不显示 token；token 只保存在你自己的客户端配置里，仓库与页面不包含、不上传任何 token。</li>
