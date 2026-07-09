@@ -5,7 +5,7 @@
 #!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Panel.png
 
 [Argument]
-tokens = input,"",tag=API tokens,desc=po0 防火墙 API token（pgnfw_ 开头），多台机器用英文逗号 , 分割
+tokens = input,"",tag=API tokens,desc=po0 防火墙 API token（pgnfw_ 开头）；多台机器用英文逗号分割；可选 token 后加 @槽位（如 pgnfw_xxx@0）钉固定坑位永不被淘汰
 
 [Rule]
 IP-CIDR,124.221.69.228/32,DIRECT,no-resolve

@@ -2,7 +2,7 @@ name: po0 防火墙自动加白
 desc: |-
   调用 po0 防火墙 API 将本机当前出口 IP 加入白名单。支持多 token（英文逗号分割），
   每 10 分钟 cron 自动触发，附手动刷新磁贴。安装后把下方两处 argument 的
-  tokens= 后面填上 pgnfw_ token。
+  tokens= 后面填上 pgnfw_ token。可选：token 后加 @槽位（如 pgnfw_xxx@0）钉固定坑位、永不被淘汰。
 category: po0
 icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Panel.png
 

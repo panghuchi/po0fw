@@ -3,7 +3,7 @@
 #!author=reallinzc
 #!homepage=https://github.com/reallinzc/po0fw
 #!arguments=tokens:请通过编辑参数填入pgnfw_token
-#!arguments-desc=tokens：po0 防火墙 API token（pgnfw_ 开头），多台机器用 | 分割（不要用逗号）
+#!arguments-desc=tokens：po0 防火墙 API token（pgnfw_ 开头），多台机器用 | 分割（不要用逗号）；可选在 token 后加 @槽位（如 pgnfw_xxx@0）钉固定坑位、永不被淘汰
 
 [Rule]
 IP-CIDR,124.221.69.228/32,DIRECT,no-resolve
