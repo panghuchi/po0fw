@@ -19,7 +19,7 @@
 |---|---|---|
 | Surge | `po0-firewall-whitelist.sgmodule` | 模块参数 `tokens` |
 | Egern | `egern/po0-firewall-whitelist.yaml`（原生模块） | 模块参数 `tokens` |
-| Shadowrocket | `shadowrocket/po0-firewall-whitelist.sgmodule` | 模块 → 编辑参数 → `tokens`（多 token 用 `\|` 分割） |
+| Shadowrocket | `shadowrocket/po0-firewall-whitelist.srmodule` | 模块 → 编辑参数 → `tokens`（多 token 用 `\|` 分割） |
 | Loon | `loon/po0-firewall-whitelist.plugin` | 插件设置 `API tokens` |
 | Stash | `stash/po0-firewall-whitelist.stoverride` | 覆写内 `argument: tokens=` |
 | Quantumult X | `quantumultx/po0-firewall-whitelist.snippet` | 存储 key `po0fw_tokens`（BoxJs）或脚本内 `INLINE_TOKENS` |
