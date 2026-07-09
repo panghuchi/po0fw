@@ -183,7 +183,7 @@ footer{
     </div>
   </div>
   <p>加白接口形如下面这段，你的 token 就是 URL 路径里 <code>pgnfw_</code> 开头的那一整串：</p>
-  <pre><code>curl https://124.221.69.228/api/firewall/<span class="tok">pgnfw_你复制到的这一整串</span>/add</code></pre>
+  <pre><code>curl -X POST https://124.221.69.228/api/firewall/<span class="tok">pgnfw_你复制到的这一整串</span>/add</code></pre>
   <p>把 <code class="tok">pgnfw_…</code> 那一整串提取出来就是本机 token。一台机器对应一个 token，多个 token 用<strong>英文逗号</strong>分割。</p>
   <div class="tip warn"><strong>🔑 token = 该机器的加白凭证</strong>，请妥善保管、不要公开分享。它只需填进你自己的客户端配置。</div>
 

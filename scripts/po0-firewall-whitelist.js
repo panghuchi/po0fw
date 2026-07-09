@@ -2,8 +2,8 @@
  * po0 防火墙自动加白
  * 兼容：Surge / Stash / Shadowrocket / Egern / Loon / Quantumult X
  *
- * GET /api/firewall/<token>/add  把"当前请求源 IP"加入白名单，并回显
- *   {enabled, whitelist[], limit, currentIp}。token 走 URL 路径，无需
+ * POST /api/firewall/<token>/add  把"当前请求源 IP"加入白名单，并回显
+ *   {enabled, whitelist:[{ip,slot}], limit, currentIp}。token 走 URL 路径，无需
  *   Authorization 头。服务端对已在白名单的 IP 做幂等处理（重复请求不
  *   重复占坑、不推进淘汰队列），因此这里每次直接无脑请求。
  * 白名单写满后按写入时间先进先出自动淘汰最旧 IP；API 无删除接口。
@@ -141,18 +141,21 @@ function readHistory(key) {
 
 function apiCall(token) {
   // token 走 URL 路径，命中 /add 即把当前出口 IP 加白
-  return httpRequest("GET", {
+  return httpRequest("POST", {
     url: API_BASE + encodeURIComponent(token) + "/add",
     headers: { "Content-Type": "application/json" },
+    body: "",
     timeout: 15,
   }).then(function (r) {
     if (r.error) return { error: r.error };
     try {
       var data = JSON.parse(r.body);
+      // whitelist 元素为 {ip, slot} 对象（旧版曾是纯 IP 字符串），统一成 IP 数组
+      data.whitelist = (Array.isArray(data.whitelist) ? data.whitelist : []).map(function (e) {
+        return e && typeof e === "object" ? e.ip : e;
+      });
       data.applied =
-        data.enabled === true &&
-        Array.isArray(data.whitelist) &&
-        data.whitelist.indexOf(data.currentIp) !== -1;
+        data.enabled === true && data.whitelist.indexOf(data.currentIp) !== -1;
       return data;
     } catch (e) {
       return { error: "响应异常: " + String(r.body).slice(0, 80) };
