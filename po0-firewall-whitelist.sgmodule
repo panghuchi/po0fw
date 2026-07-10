@@ -3,7 +3,7 @@
 #!category=po0
 #!author=reallinzc
 #!arguments=tokens:""
-#!arguments-desc=tokens: po0 防火墙 API token（pgnfw_ 开头），多台机器用英文逗号 , 分割；可选在 token 后加 @槽位（如 pgnfw_xxx@0）钉固定坑位、永不被淘汰
+#!arguments-desc=tokens: po0 防火墙 API token（pgnfw_ 开头），多台机器用英文逗号 , 分割；可选在 token 后加 @槽位（如 pgnfw_xxx@0）钉固定坑位、永不被淘汰。
 
 [Rule]
 # 加白 API 必须直连，确保 API 看到的是本机真实出口 IP 而不是代理出口
