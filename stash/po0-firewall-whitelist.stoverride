@@ -7,14 +7,14 @@ category: po0
 icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Panel.png
 
 rules:
-  - IP-CIDR,124.221.69.228/32,DIRECT,no-resolve
+  - DOMAIN,console.po0.com,DIRECT
 
 http:
   mitm: []
 
 script-providers:
   po0-fw:
-    url: https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js
+    url: https://raw.githubusercontent.com/panghuchi/po0fw/main/scripts/po0-firewall-whitelist.js
     interval: 86400
 
 cron:

@@ -7,11 +7,11 @@
 ;
 ; 安装方式（QX 无法远程订阅定时任务，必须手动放进本地配置）：
 ; - 把下面 [task_local] 的任务行加进你 QX 配置的 [task_local] 段；
-; - 可选把 [filter_local] 的 ip-cidr 行加进 [filter_local] 段（或作为「分流」引用）。
+; - 可选把 [filter_local] 的 host-suffix 行加进 [filter_local] 段（或作为「分流」引用）。
 ; 任务行内引用的远程 .js 链接是允许的，只是这一行本身必须写在本地配置里。
 
 [task_local]
-*/10 * * * * https://raw.githubusercontent.com/reallinzc/po0fw/main/scripts/po0-firewall-whitelist.js, tag=po0 防火墙加白, img-url=checkmark.shield.system, enabled=true
+*/10 * * * * https://raw.githubusercontent.com/panghuchi/po0fw/main/scripts/po0-firewall-whitelist.js, tag=po0 防火墙加白, img-url=checkmark.shield.system, enabled=true
 
 [filter_local]
-ip-cidr, 124.221.69.228/32, direct, no-resolve
+host-suffix, console.po0.com, direct

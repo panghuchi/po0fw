@@ -149,7 +149,7 @@ footer{
   <p class="tagline">自动把设备当前出口 IP 加入 po0 防火墙白名单 —— 多机器、多客户端、蜂窝优化、坑位记账。</p>
   <div class="actions">
     <a class="btn brand" href="#install">快速开始 →</a>
-    <a class="btn alt" href="https://github.com/reallinzc/po0fw">GitHub</a>
+    <a class="btn alt" href="https://github.com/panghuchi/po0fw">GitHub</a>
   </div>
 </div>
 
@@ -182,11 +182,13 @@ footer{
       <div class="mock-add">🛡 添加当前 IP</div>
     </div>
   </div>
-  <p>加白接口形如下面这段，你的 token 就是 URL 路径里 <code>pgnfw_</code> 开头的那一整串：</p>
-  <pre><code>curl -X POST https://124.221.69.228/api/firewall/<span class="tok">pgnfw_你复制到的这一整串</span>/add</code></pre>
+  <p>加白接口形如下面这段，你的 token 就是 <code>Authorization</code> 里 <code>pgnfw_</code> 开头的那一整串：</p>
+  <pre><code>curl -X POST 'https://console.po0.com/modules/servers/penguin/api/firewall.php' \
+  -H 'Authorization: Bearer <span class="tok">pgnfw_你复制到的这一整串</span>' \
+  -H 'Content-Type: application/json'</code></pre>
   <p>把 <code class="tok">pgnfw_…</code> 那一整串提取出来就是本机 token。一台机器对应一个 token，多个 token 用<strong>英文逗号</strong>分割。</p>
   <div class="tip warn"><strong>🔑 token = 该机器的加白凭证</strong>，请妥善保管、不要公开分享。它只需填进你自己的客户端配置。</div>
-  <div class="tip"><strong>进阶：固定槽位</strong>。默认加白按最近使用时间自动淘汰最旧 IP。若想让某台机器（如家宽出口）常驻不被淘汰，在它的 token 后加 <code>@槽位号</code>，例如 <code class="tok">pgnfw_你的token@0</code>——脚本会请求 <code>…/add?slot=0</code> 把它钉在 0 号槽位。注意每个 IP 只能占一个槽位，换槽前需先在面板删掉旧槽位。</div>
+  <div class="tip"><strong>进阶：固定槽位</strong>。默认加白按最近使用时间自动淘汰最旧 IP。若想让某台机器（如家宽出口）常驻不被淘汰，在它的 token 后加 <code>@槽位号</code>，例如 <code class="tok">pgnfw_你的token@0</code>——脚本会请求 <code>…/firewall.php?slot=0</code> 把它钉在 0 号槽位。注意每个 IP 只能占一个槽位，换槽前需先在面板删掉旧槽位。</div>
 
   <h3>2. 选择你的客户端安装</h3>
   <div class="clients">
@@ -197,8 +199,8 @@ footer{
         <div><b>Surge</b><span>iOS / Mac · sgmodule</span></div>
       </div>
       <div class="install">
-        <a class="btn brand" href="surge:///install-module?url=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Fpo0-firewall-whitelist.sgmodule">一键安装</a>
-        <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/po0-firewall-whitelist.sgmodule">复制链接</button>
+        <a class="btn brand" href="surge:///install-module?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpanghuchi%2Fpo0fw%2Fmain%2Fpo0-firewall-whitelist.sgmodule">一键安装</a>
+        <button class="copy" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/po0-firewall-whitelist.sgmodule">复制链接</button>
       </div>
       <p class="note">安装时在模块参数 <code>tokens</code> 填入 token。首页自带手动刷新面板。</p>
     </div>
@@ -209,8 +211,8 @@ footer{
         <div><b>Loon</b><span>iOS · plugin</span></div>
       </div>
       <div class="install">
-        <a class="btn brand" href="loon://import?plugin=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Floon%2Fpo0-firewall-whitelist.plugin">一键安装</a>
-        <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/loon/po0-firewall-whitelist.plugin">复制链接</button>
+        <a class="btn brand" href="loon://import?plugin=https%3A%2F%2Fraw.githubusercontent.com%2Fpanghuchi%2Fpo0fw%2Fmain%2Floon%2Fpo0-firewall-whitelist.plugin">一键安装</a>
+        <button class="copy" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/loon/po0-firewall-whitelist.plugin">复制链接</button>
       </div>
       <p class="note">安装后进插件设置，在 <code>API tokens</code> 输入框填入 token。Loon 无面板，可在「脚本」列表手动执行 cron 脚本立即加白。</p>
     </div>
@@ -221,8 +223,8 @@ footer{
         <div><b>Stash</b><span>iOS · stoverride</span></div>
       </div>
       <div class="install">
-        <a class="btn brand" href="stash://install-override?url=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Fstash%2Fpo0-firewall-whitelist.stoverride">一键安装</a>
-        <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/stash/po0-firewall-whitelist.stoverride">复制链接</button>
+        <a class="btn brand" href="stash://install-override?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpanghuchi%2Fpo0fw%2Fmain%2Fstash%2Fpo0-firewall-whitelist.stoverride">一键安装</a>
+        <button class="copy" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/stash/po0-firewall-whitelist.stoverride">复制链接</button>
       </div>
       <p class="note">安装后编辑覆写，把两处 <code>argument: tokens=</code> 补全。附手动刷新磁贴。</p>
     </div>
@@ -233,9 +235,9 @@ footer{
         <div><b>Quantumult X</b><span>iOS · task 片段</span></div>
       </div>
       <div class="install">
-        <button class="copy" style="flex:1" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/quantumultx/po0-firewall-whitelist.snippet">复制片段链接</button>
+        <button class="copy" style="flex:1" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/quantumultx/po0-firewall-whitelist.snippet">复制片段链接</button>
       </div>
-      <p class="note">QX 无法远程订阅定时任务，需手动装：打开 QX 配置文件，把片段里的任务行加进 <code>[task_local]</code>；可选把 <code>ip-cidr, 124.221.69.228/32, direct, no-resolve</code> 加进 <code>[filter_local]</code>。QX 不支持脚本参数：用 BoxJs 给 key <code>po0fw_tokens</code> 写入 token，或本地脚本改 <code>INLINE_TOKENS</code>。</p>
+      <p class="note">QX 无法远程订阅定时任务，需手动装：打开 QX 配置文件，把片段里的任务行加进 <code>[task_local]</code>；可选把 <code>host-suffix, console.po0.com, direct</code> 加进 <code>[filter_local]</code>。QX 不支持脚本参数：用 BoxJs 给 key <code>po0fw_tokens</code> 写入 token，或本地脚本改 <code>INLINE_TOKENS</code>。</p>
     </div>
 
     <div class="client">
@@ -244,8 +246,8 @@ footer{
         <div><b>Shadowrocket</b><span>iOS · srmodule</span></div>
       </div>
       <div class="install">
-        <a class="btn brand" href="shadowrocket://install?module=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Fshadowrocket%2Fpo0-firewall-whitelist.srmodule">一键安装</a>
-        <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/shadowrocket/po0-firewall-whitelist.srmodule">复制链接</button>
+        <a class="btn brand" href="shadowrocket://install?module=https%3A%2F%2Fraw.githubusercontent.com%2Fpanghuchi%2Fpo0fw%2Fmain%2Fshadowrocket%2Fpo0-firewall-whitelist.srmodule">一键安装</a>
+        <button class="copy" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/shadowrocket/po0-firewall-whitelist.srmodule">复制链接</button>
       </div>
       <p class="note">装好后<strong>点击模块 → 编辑参数</strong>，把 tokens 换成你的 token（多台机器用 <code>|</code> 分割）。手动装：配置 → 模块 → 右上角 + → 粘贴链接。</p>
     </div>
@@ -256,8 +258,8 @@ footer{
         <div><b>Egern</b><span>iOS / Mac · 原生模块</span></div>
       </div>
       <div class="install">
-        <a class="btn brand" href="egern:/modules/new?url=https%3A%2F%2Fraw.githubusercontent.com%2Freallinzc%2Fpo0fw%2Fmain%2Fegern%2Fpo0-firewall-whitelist.yaml">一键安装</a>
-        <button class="copy" data-url="https://raw.githubusercontent.com/reallinzc/po0fw/main/egern/po0-firewall-whitelist.yaml">复制链接</button>
+        <a class="btn brand" href="egern:/modules/new?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpanghuchi%2Fpo0fw%2Fmain%2Fegern%2Fpo0-firewall-whitelist.yaml">一键安装</a>
+        <button class="copy" data-url="https://raw.githubusercontent.com/panghuchi/po0fw/main/egern/po0-firewall-whitelist.yaml">复制链接</button>
       </div>
       <p class="note">安装后在模块参数 <code>tokens</code> 填入 token（多台机器用英文逗号分割）。每 10 分钟及网络变化时自动加白。</p>
     </div>
@@ -299,7 +301,7 @@ footer{
 <section>
   <h2>FAQ</h2>
   <p><strong>Q: 走代理时会把代理服务器 IP 加白吗？</strong><br>
-  不会。各载体都自带加白 API（<code>124.221.69.228</code>）直连规则，API 请求始终直连，看到的是设备真实出口 IP。</p>
+  不会。各载体都自带加白 API（<code>console.po0.com</code>）直连规则，API 请求始终直连，看到的是设备真实出口 IP。</p>
   <p><strong>Q: 家宽换 IP 后多久生效？</strong><br>
   网络切换事件是即时的；纯粹的公网 IP 变更最迟 10 分钟内被 cron 捕捉。</p>
   <p><strong>Q: 不同客户端功能有差异吗？</strong><br>
@@ -309,7 +311,7 @@ footer{
 </section>
 
 <footer>
-  MIT · <a href="https://github.com/reallinzc/po0fw">github.com/reallinzc/po0fw</a>
+  MIT · <a href="https://github.com/panghuchi/po0fw">github.com/panghuchi/po0fw</a>
 </footer>
 
 </div>
