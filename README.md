@@ -43,3 +43,7 @@ pgnfw_home@0,pgnfw_phone,pgnfw_office@1
 Surge/Loon/Stash/Shadowrocket/Quantumult X 共用 `scripts/po0-firewall-whitelist.js`，内置环境兼容层（`$httpClient`/`$task.fetch`、`$persistentStore`/`$prefs`、`$notification`/`$notify`）。不支持 `$network` 的客户端按非蜂窝处理；不支持面板的客户端仅少一个手动刷新入口。**Egern** 运行模型不同（`export default async function(ctx)`，无 `$` 全局），用独立的 `egern/po0-firewall-whitelist.js`（`ctx.http`/`ctx.storage`/`ctx.notify`/`ctx.env`/`ctx.device`），业务逻辑与共享脚本一致。
 
 一键安装入口见教程页 <https://po0fw.panghuchi.work/>。token 只保存在你自己的客户端配置里，本仓库不包含、不上传任何 token。
+
+## 致谢
+
+本项目 fork 自 [reallinzc/po0fw](https://github.com/reallinzc/po0fw)，感谢原作者 reallinzc 的实现与分享。
