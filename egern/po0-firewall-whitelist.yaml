@@ -10,9 +10,10 @@ compat_arguments:
 
 # 加白 API 必须直连，确保服务端看到的是本机真实出口 IP 而不是代理出口
 rules:
-  - domain:
-      match: console.po0.com
+  - ip_cidr:
+      match: 124.221.69.228/32
       policy: DIRECT
+      no_resolve: true
 
 scriptings:
   - schedule:

@@ -6,14 +6,13 @@
  * 因此 Egern 不复用共享脚本 scripts/po0-firewall-whitelist.js，而是本独立文件。
  * 两者业务逻辑保持一致——改动加白/槽位/通知策略时请同步修改两份。
  *
- * 行为：POST https://console.po0.com/modules/servers/penguin/api/firewall.php[?slot=N]，
- *   把本机当前出口 IP 加白。token 走 Authorization: Bearer 头；服务端对已在
- *   白名单的 IP 幂等；写满 5 个后按写入时间 FIFO 淘汰（带 slot 的行永不淘汰）。
- *   token 来自模块参数 tokens（ctx.env.tokens），可带 @槽位 后缀（pgnfw_xxx@0）
- *   钉固定坑位。
+ * 行为：POST https://124.221.69.228/api/firewall/<token>/add[?slot=N]，把本机当前
+ *   出口 IP 加白。token 走 URL 路径；服务端对已在白名单的 IP 幂等；写满 5 个后按
+ *   写入时间 FIFO 淘汰（带 slot 的行永不淘汰）。token 来自模块参数 tokens
+ *   （ctx.env.tokens），可带 @槽位 后缀（pgnfw_xxx@0）钉固定坑位。
  */
 
-const API_ENDPOINT = "https://console.po0.com/modules/servers/penguin/api/firewall.php";
+const API_BASE = "https://124.221.69.228/api/firewall/"; // + <token> + "/add"
 const STORE_PREFIX = "po0_fw_";
 const HIST_WINDOW_MS = 24 * 3600 * 1000; // 📶 标记的记账窗口
 
@@ -62,17 +61,14 @@ function readHistory(ctx, key) {
 }
 
 async function apiCall(ctx, token, slot) {
-  let url = API_ENDPOINT;
+  let url = API_BASE + encodeURIComponent(token) + "/add";
   if (slot !== null && slot !== undefined && slot !== "") {
     url += "?slot=" + encodeURIComponent(slot);
   }
   let resp;
   try {
     resp = await ctx.http.post(url, {
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: "",
       timeout: 15000,
     });

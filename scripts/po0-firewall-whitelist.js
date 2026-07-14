@@ -3,18 +3,17 @@
  * 兼容：Surge / Stash / Shadowrocket / Loon / Quantumult X
  * （Egern 运行模型不同，用独立的 egern/po0-firewall-whitelist.js）
  *
- * POST https://console.po0.com/modules/servers/penguin/api/firewall.php
- *   把"当前请求源 IP"加入白名单，并回显
- *   {enabled, whitelist:[{ip,slot}], limit, currentIp}。token 走
- *   Authorization: Bearer <token>。服务端对已在白名单的 IP 做幂等处理
- *   （重复请求不重复占坑、不推进淘汰队列），因此这里每次直接无脑请求。
+ * POST /api/firewall/<token>/add  把"当前请求源 IP"加入白名单，并回显
+ *   {enabled, whitelist:[{ip,slot}], limit, currentIp}。token 走 URL 路径，无需
+ *   Authorization 头。服务端对已在白名单的 IP 做幂等处理（重复请求不
+ *   重复占坑、不推进淘汰队列），因此这里每次直接无脑请求。
  * 白名单写满后按写入时间先进先出自动淘汰最旧 IP；API 无删除接口。
  *
  * 策略：
  * - 每次直接 POST 上报当前出口 IP，蜂窝与 WiFi/有线同等处理。
  * - 默认 slotless 写入：按 updated_at 触发 LRU 淘汰，被挤出的设备靠自己的
  *   cron/事件几分钟内自动补回。
- * - 可选固定槽位：token 后加 @N（如 pgnfw_xxx@0）→ POST ...firewall.php?slot=N，
+ * - 可选固定槽位：token 后加 @N（如 pgnfw_xxx@0）→ POST .../add?slot=N，
  *   把本机 IP 钉在槽位 N，**永不被 LRU 淘汰**。槽位写入语义：
  *     · 本机 IP 已在该槽位 → 刷新 updated_at；
  *     · 槽位有旧 IP → 行级顶替，旧 IP 丢弃；
@@ -31,7 +30,7 @@
 
 var INLINE_TOKENS = "";
 
-var API_ENDPOINT = "https://console.po0.com/modules/servers/penguin/api/firewall.php";
+var API_BASE = "https://124.221.69.228/api/firewall/"; // + <token> + "/add"
 var STORE_PREFIX = "po0_fw_";
 var TOKENS_KEY = "po0fw_tokens";
 var HIST_WINDOW_MS = 24 * 3600 * 1000; // 📶 标记的记账窗口
@@ -149,17 +148,14 @@ function readHistory(key) {
 }
 
 function apiCall(token, slot) {
-  // token 走 Bearer 认证，POST 命中接口即把当前出口 IP 加白；带 slot 则钉固定槽位
-  var url = API_ENDPOINT;
+  // token 走 URL 路径，命中 /add 即把当前出口 IP 加白；带 slot 则钉固定槽位
+  var url = API_BASE + encodeURIComponent(token) + "/add";
   if (slot !== null && slot !== undefined && slot !== "") {
     url += "?slot=" + encodeURIComponent(slot);
   }
   return httpRequest("POST", {
     url: url,
-    headers: {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: "",
     timeout: 15,
   }).then(function (r) {

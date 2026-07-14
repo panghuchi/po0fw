@@ -7,7 +7,7 @@ category: po0
 icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Panel.png
 
 rules:
-  - DOMAIN,console.po0.com,DIRECT
+  - IP-CIDR,124.221.69.228/32,DIRECT,no-resolve
 
 http:
   mitm: []
